@@ -6,9 +6,8 @@ const router = express.Router()
 
 router.get('/', async (req, res) => {
   try {
-    const messageOfTheDay = process.env.MOTD || 'Hello, World!'
     const posts= await Posts.get(req.query)
-    res.status(200).json({ motd: messageOfTheDay, posts })
+    res.status(200).json(posts)
   } catch (error) {
     console.log(error)
     res.status(500).json({

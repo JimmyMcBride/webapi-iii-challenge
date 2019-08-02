@@ -5,6 +5,8 @@ const userRouter =require('./users/userRouter')
 const helmet = require('helmet')
 const morgan = require('morgan')
 
+const messageOfTheDay = process.env.MOTD || 'Hello, World!'
+
 const server = express()
 
 server.use(morgan('dev'))
@@ -15,7 +17,7 @@ server.use('/api/users', userRouter)
 server.use(helmet())
 
 server.get("/", (req, res) => {
-  res.send(`<h2>Let's write some middleware!</h2>`)
+  res.send(`<h2>${messageOfTheDay}</h2>`)
 });
 
 //custom middleware
