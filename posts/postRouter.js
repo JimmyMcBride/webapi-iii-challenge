@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', validatePostId, async (req, res) => {
   try {
     const post = await Posts.getById(req.params.id)
     if (post) {
@@ -34,7 +34,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', validatePost, async (req, res) => {
   try {
     const post = await Posts.insert(req.body)
     res.status(201).json(post)
@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
   }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', validatePostId, async (req, res) => {
   try {
     const count = await Posts.remove(req.params.id)
     if (count > 0) {
@@ -65,8 +65,8 @@ router.delete('/:id', async (req, res) => {
     })
   }
 })
-
-router.put('/:id', async (req, res) => {
+//
+router.put('/:id', validatePostId, validatePostContent, async (req, res) => {
   try {
     const post = await Posts.update(req.params.id, req.body)
     if (post) {
@@ -86,8 +86,55 @@ router.put('/:id', async (req, res) => {
 
 // custom middleware 🔥
 
-function validatePostId(req, res, next) {
+async function validatePostId(req, res, next) {
+  try {
+    const { id } = req.params
+    const post = await Posts.getById(id)
+    if (post) {
+      req.post = post
+      next()
+    } else {
+      res.status(404).json({
+        message: 'The post you are looking for could not be found 🤷‍'
+      })
+    }
+  } catch (error) {
+    // console.log(error)
+    console.log(req.params.id)
+    res.status(500).json({error})
+  }
+}
 
+function validatePost(req, res, next) {
+  try {
+    const post = req.body
+    if (post.text) {
+      console.log('Post validation success')
+      req.post = post
+      next()
+    } else {
+      res.status(400).json({ message: 'Body not found in request 💩' })
+    }
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error)
+  }
+}
+
+function validatePostContent(req, res, next) {
+  try {
+    const post = req.body
+    if (post.text || post.user_id) {
+      next()
+    } else {
+      res.status(400).json({
+        message: 'Either a text field, user ID, or both are required 🤦‍'
+      })
+    }
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error)
+  }
 }
 
 module.exports = router

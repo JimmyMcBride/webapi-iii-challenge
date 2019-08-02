@@ -1,10 +1,10 @@
-const express = 'express'
+const express = require('express')
 
 const Users = require('./userDb.js')
 
 const router = express.Router()
 
-router.get('/', async (req, res) => {
+router.get('/', validateUsers, async (req, res) => {
   try {
     const users= await Users.get(req.query)
     res.status(200).json(users)
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateUserId, async (req, res) => {
   try {
     const user = await Users.getById(req.params.id)
     if (user) {
@@ -34,7 +34,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', validateUsers, async (req, res) => {
   try {
     const user = await Users.insert(req.body)
     res.status(201).json(user)
@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
   }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', validateUserId, async (req, res) => {
   try {
     const count = await Users.remove(req.params.id)
     if (count > 0) {
@@ -66,7 +66,7 @@ router.delete('/:id', async (req, res) => {
   }
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validateUserId, async (req, res) => {
   try {
     const user = await Users.update(req.params.id, req.body)
     if (user) {
@@ -86,16 +86,60 @@ router.put('/:id', async (req, res) => {
 
 //custom middleware
 
-function validateUserId(req, res, next) {
-
+async function validateUserId(req, res, next) {
+  try {
+    const { id } = req.params
+    const user = await Users.getById(id)
+    if (user) {
+      console.log('User ID validation success')
+      console.log(req.params)
+      req.user = user
+      next()
+    } else {
+      res.status(404).json({ message: 'The user you are looking for could not be found 🤷‍' })
+    }
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error)
+  }
 }
 
-function validateUser(req, res, next) {
+// this code is broke
 
+function validateUsers(req, res, next) {
+  try {
+    const user = req.body
+    if (user) {
+      console.log('User validation success')
+      next()
+    } else {
+      res.status(400).json({
+        message: 'Name not found in request 💩'
+      })
+    }
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error)
+  }
 }
 
-function validatePost(req, res, next) {
+// This middleware function is garbage 💩
 
-}
+// function validatePost(req, res, next) {
+//   try {
+//     const post = req.body
+//     if (post.text) {
+//       console.log('Post validation success')
+//       req.post = post
+//       next()
+//     } else {
+//       console.log(req.body)
+//       res.status(400).json({ message: 'Body not found in request 💩' })
+//     }
+//   } catch (error) {
+//     console.log(error)
+//     res.status(500).json(error)
+//   }
+// }
 
 module.exports = router

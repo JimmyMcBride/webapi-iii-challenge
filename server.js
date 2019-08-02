@@ -1,6 +1,7 @@
 const express = require('express')
 
 const postRouter =require('./posts/postRouter')
+const userRouter =require('./users/userRouter')
 const helmet = require('helmet')
 const morgan = require('morgan')
 
@@ -10,6 +11,7 @@ server.use(morgan('dev'))
 server.use(logger)
 server.use(express.json())
 server.use('/api/posts', postRouter)
+server.use('/api/users', userRouter)
 server.use(helmet())
 
 server.get("/", (req, res) => {
