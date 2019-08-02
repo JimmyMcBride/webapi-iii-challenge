@@ -36,8 +36,9 @@ router.get('/:id', validatePostId, async (req, res) => {
 
 router.post('/', validatePost, async (req, res) => {
   try {
+    const messageOfTheDay = process.env.MOTD || 'Hello, World!'
     const post = await Posts.insert(req.body)
-    res.status(201).json(post)
+    res.status(201).json({ motd: messageOfTheDay, post })
   } catch (error) {
     console.log(error)
     res.status(500).json({
